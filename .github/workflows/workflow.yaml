@@ -30,11 +30,59 @@ jobs:
       - name: Extract tags from last commit
         id: extract_tags
         run: |
-          tags=$(git tag --contains $(git rev-parse HEAD) | tr '\n' ',' | sed 's/,$//')
-          if [ -z "$tags" ]; then
-            tags="latest"
-          fi
-          echo "tags=$tags" >> $GITHUB_ENV
+
+To make the workflow more dynamic by setting the push key dynamically, you can use environment variables and expressions in GitHub Actions. You can control the value of the push key based on the presence of tags.
+
+Here’s an updated version of the workflow that sets the push key dynamically:
+
+Example docker-publish.yml
+yaml
+Copy code
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Convert repository_owner to lowercase
+      id: convert_owner
+      run: |
+        echo "LOWERCASE_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Login to GitHub Container Registry using PAT
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GHCR_PAT }}
+
+    - name: Check for Tags
+      id: check_tags
+      run: |
+        tags=$(git tag --contains $(git rev-parse HEAD) | tr '\n' ',' | sed 's/,$//')
+        if [ -n "$tags" ]; then
+          echo "TAGS_PRESENT=true" >> $GITHUB_ENV
+          echo "tags=$(echo $tags | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        else
+          echo "TAGS_PRESENT=false" >> $GITHUB_ENV
+          echo "tags=latest" >> $GITHUB_ENV
+        fi
       - name: Generate SHA from last commit
         id: extract_sha
         run: echo "git_sha=${GITHUB_SHA}" >> $GITHUB_ENV
@@ -42,7 +90,7 @@ jobs:
       - name: Build and push docker image
         uses: docker/build-push-action@v6
         with:
-          push: true
+          push: ${{ env.TAGS_PRESENT == 'true' }}
           build-args: |
             "REACT_APP_API_URL=http://localhost:8080"
             "REPO_URL=${{ github.repository }}"
