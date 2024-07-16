@@ -1,24 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./Login";
+import Protected from "./Protected";
 
 function App() {
+  const apiUrl = process.env.REACT_APP_API_URL;
+
+  if (!apiUrl) {
+    return <div>Error: API URL is not set.</div>;
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login apiUrl={apiUrl} />} />
+        <Route path="/protected" element={<Protected apiUrl={apiUrl} />} />
+      </Routes>
+    </Router>
   );
 }
 
