@@ -6,7 +6,7 @@ function App() {
   const apiUrl = process.env.REACT_APP_API_URL;
 
   if (!apiUrl) {
-    return <div>Error: API URL is not set.</div>;
+    return <div>Error: API URL is not set!</div>;
   }
 
   return (
