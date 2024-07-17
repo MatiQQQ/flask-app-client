@@ -50,7 +50,7 @@ jobs:
           push: ${{ env.TAGS_PRESENT == 'true' }}
           platforms: linux/amd64,linux/arm64
           build-args: |
-            "REACT_APP_API_URL=http://${{ vars.API_SERVICE }}:8080"
+            "REACT_APP_API_URL=http://${{ vars.API_SERVICE }}"
             "REPO_URL=${{ github.repository }}"
           tags: |
             ghcr.io/${{ env.LOWERCASE_OWNER }}/flask-app-client:latest
