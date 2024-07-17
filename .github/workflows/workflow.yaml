@@ -48,8 +48,9 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: ${{ env.TAGS_PRESENT == 'true' }}
+          platforms: linux/amd64,linux/arm64
           build-args: |
-            "REACT_APP_API_URL=http://localhost:8080"
+            "REACT_APP_API_URL=http://${{ vars.API_SERVICE }}:8080"
             "REPO_URL=${{ github.repository }}"
           tags: |
             ghcr.io/${{ env.LOWERCASE_OWNER }}/flask-app-client:latest
@@ -58,6 +59,8 @@ jobs:
           context: .
       - name: Logout from ghcr.io
         run: docker logout ghcr.io
+      - name: Display repo url
+        run: echo ${{ github.repository }}
 
 
   
